@@ -13,8 +13,7 @@ The dataset used in this project includes information such as study hours, atten
 📂 Dataset
 
 The dataset is available in the repository:
-metadata.xlsx → Contains student performance data used for model training.
-Students_Grading_Dataset.csv → Contains student performance dataset via csv
+Students_Grading_Dataset.csv → Contains student performance data used for model training.
 
 🔧 Model Training
 
