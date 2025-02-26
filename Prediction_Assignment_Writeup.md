@@ -26,4 +26,4 @@ This project aims to predict student grades and total scores based on various ac
 - The regression model showed reasonable accuracy but could be improved with feature engineering.
 
 ## 6. Repository
-You can find the dataset and code in this GitHub repository: [Your GitHub Link Here].
+You can find the dataset and code in this GitHub repository [https://github.com/azozing/student-grade-prediction](https://github.com/azozing/student-grade-prediction).
