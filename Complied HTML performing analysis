@@ -1,0 +1,280 @@
+import pandas as pd
+
+
+
+# Memuat dataset CSV
+
+csv_path = "/mnt/data/Students_Grading_Dataset.csv"
+
+df_csv = pd.read_csv(csv_path)
+
+
+
+# Memuat dataset JSON
+
+json_path = "/mnt/data/Students_Grading_Dataset.json"
+
+df_json = pd.read_json(json_path)
+
+
+
+# Memuat metadata (jika diperlukan)
+
+metadata_path = "/mnt/data/metadata.xlsx"
+
+df_metadata = pd.ExcelFile(metadata_path)
+
+
+
+# Menampilkan informasi awal dari dataset CSV dan JSON
+
+df_csv_info = df_csv.info()
+
+df_json_info = df_json.info()
+
+
+
+# Menampilkan beberapa baris pertama dari dataset CSV dan JSON
+
+df_csv_head = df_csv.head()
+
+df_json_head = df_json.head()
+
+
+
+df_csv_info, df_csv_head, df_json_info, df_json_head
+
+# Menghapus kolom yang tidak relevan untuk prediksi
+
+irrelevant_columns = ["Student_ID", "First_Name", "Last_Name", "Email"]
+
+df_cleaned = df_csv.drop(columns=irrelevant_columns)
+
+
+
+# Menangani nilai kosong dengan imputasi (menggunakan median untuk numerik dan modus untuk kategori)
+
+for col in df_cleaned.columns:
+
+    if df_cleaned[col].dtype == "object":
+
+        df_cleaned[col].fillna(df_cleaned[col].mode()[0], inplace=True)
+
+    else:
+
+        df_cleaned[col].fillna(df_cleaned[col].median(), inplace=True)
+
+
+
+# Menampilkan jumlah nilai kosong setelah imputasi
+
+missing_values_after = df_cleaned.isnull().sum().sum()
+
+df_cleaned.info(), missing_values_after
+
+import seaborn as sns
+
+import matplotlib.pyplot as plt
+
+
+
+# Korelasi antara fitur numerik dengan Total_Score
+
+plt.figure(figsize=(10, 6))
+
+sns.heatmap(df_cleaned.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+
+plt.title("Korelasi Antar Variabel Numerik")
+
+plt.show()
+
+
+
+# Distribusi Grade
+
+plt.figure(figsize=(8, 5))
+
+sns.countplot(x=df_cleaned["Grade"], order=sorted(df_cleaned["Grade"].unique()))
+
+plt.title("Distribusi Grade Mahasiswa")
+
+plt.xlabel("Grade")
+
+plt.ylabel("Jumlah Mahasiswa")
+
+plt.show()
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+
+from sklearn.metrics import accuracy_score, mean_absolute_error
+
+
+
+# Encode Grade sebagai variabel target untuk klasifikasi
+
+label_encoder = LabelEncoder()
+
+df_cleaned["Grade_Encoded"] = label_encoder.fit_transform(df_cleaned["Grade"])
+
+
+
+# Menentukan fitur dan target
+
+X = df_cleaned.drop(columns=["Grade", "Grade_Encoded", "Total_Score"])
+
+y_classification = df_cleaned["Grade_Encoded"]
+
+y_regression = df_cleaned["Total_Score"]
+
+
+
+# Normalisasi fitur numerik
+
+scaler = StandardScaler()
+
+X_scaled = scaler.fit_transform(X)
+
+
+
+# Membagi data menjadi training dan testing (80-20)
+
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_scaled, y_classification, test_size=0.2, random_state=42)
+
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_scaled, y_regression, test_size=0.2, random_state=42)
+
+
+
+# Model klasifikasi (Random Forest)
+
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+
+clf.fit(X_train_cls, y_train_cls)
+
+y_pred_cls = clf.predict(X_test_cls)
+
+accuracy = accuracy_score(y_test_cls, y_pred_cls)
+
+
+
+# Model regresi (Random Forest)
+
+reg = RandomForestRegressor(n_estimators=100, random_state=42)
+
+reg.fit(X_train_reg, y_train_reg)
+
+y_pred_reg = reg.predict(X_test_reg)
+
+mae = mean_absolute_error(y_test_reg, y_pred_reg)
+
+
+
+accuracy, mae
+
+from sklearn.preprocessing import OneHotEncoder
+
+
+
+# Mengonversi fitur kategorikal menjadi numerik menggunakan one-hot encoding
+
+categorical_columns = df_cleaned.select_dtypes(include=["object"]).columns.tolist()
+
+encoder = OneHotEncoder(drop="first", sparse=False)
+
+encoded_categorical = encoder.fit_transform(df_cleaned[categorical_columns])
+
+encoded_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
+
+
+
+# Menggabungkan kembali dengan dataset numerik
+
+df_numeric = df_cleaned.drop(columns=categorical_columns)
+
+df_final = pd.concat([df_numeric, encoded_df], axis=1)
+
+
+
+# Menampilkan kolom setelah encoding
+
+df_final.info()
+
+# Menentukan fitur dan target setelah encoding
+
+X_final = df_final.drop(columns=["Grade_Encoded", "Total_Score"])
+
+y_classification_final = df_final["Grade_Encoded"]
+
+y_regression_final = df_final["Total_Score"]
+
+
+
+# Normalisasi fitur numerik
+
+X_scaled_final = scaler.fit_transform(X_final)
+
+
+
+# Membagi data menjadi training dan testing (80-20)
+
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_scaled_final, y_classification_final, test_size=0.2, random_state=42)
+
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_scaled_final, y_regression_final, test_size=0.2, random_state=42)
+
+
+
+# Model klasifikasi (Random Forest)
+
+clf.fit(X_train_cls, y_train_cls)
+
+y_pred_cls = clf.predict(X_test_cls)
+
+accuracy_final = accuracy_score(y_test_cls, y_pred_cls)
+
+
+
+# Model regresi (Random Forest)
+
+reg.fit(X_train_reg, y_train_reg)
+
+y_pred_reg = reg.predict(X_test_reg)
+
+mae_final = mean_absolute_error(y_test_reg, y_pred_reg)
+
+
+
+accuracy_final, mae_final
+
+# Mendefinisikan ulang model klasifikasi dan regresi
+
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+
+reg = RandomForestRegressor(n_estimators=100, random_state=42)
+
+
+
+# Melatih model klasifikasi
+
+clf.fit(X_train_cls, y_train_cls)
+
+y_pred_cls = clf.predict(X_test_cls)
+
+accuracy_final = accuracy_score(y_test_cls, y_pred_cls)
+
+
+
+# Melatih model regresi
+
+reg.fit(X_train_reg, y_train_reg)
+
+y_pred_reg = reg.predict(X_test_reg)
+
+mae_final = mean_absolute_error(y_test_reg, y_pred_reg)
+
+
+
+accuracy_final, mae_final
+
