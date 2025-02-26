@@ -51,7 +51,7 @@ python train_model.py
 
 📂 student-grade-prediction  
 ├── 📄 README.md  
-├── 📄 metadata.xlsx  # Dataset  
+├── 📄 Students_Grading_Dataset.csv  # Dataset  
 ├── 📄 train_model.py  # Model training script  
 ├── 📄 requirements.txt  # Dependencies  
 └── 📄 Prediction_Assignment_Writeup.pdf  # Report
